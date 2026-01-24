@@ -1,142 +1,96 @@
 package com.yourcompany.pingpong.modules.tournament.service;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.yourcompany.pingpong.domain.Tournament;
-import com.yourcompany.pingpong.domain.TournamentStatus;
 import com.yourcompany.pingpong.domain.User;
 import com.yourcompany.pingpong.modules.tournament.dto.TournamentDto;
-import com.yourcompany.pingpong.modules.tournament.repository.TournamentRepository;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
 
-@Slf4j
-@Service
-@RequiredArgsConstructor
-@Transactional(readOnly = true)
-public class TournamentService {
-
-    private final TournamentRepository tournamentRepository;
+/**
+ * 토너먼트 관리 서비스 인터페이스
+ * 
+ * <p>이 서비스는 탁구 토너먼트의 생성, 조회, 수정, 삭제를 담당합니다.</p>
+ * 
+ * <h3>주요 기능</h3>
+ * <ul>
+ *   <li>대회 CRUD 작업</li>
+ *   <li>진행 중인 대회 조회</li>
+ *   <li>관리자용 대회 목록 조회</li>
+ * </ul>
+ * 
+ * @author table-tennis-tournament
+ * @version 1.0
+ * @since 2026-01-24
+ */
+public interface TournamentService {
 
     /**
      * 전체 대회 목록 조회
+     * 
+     * @return 모든 대회 목록 (참가자 정보 포함)
      */
-    public List<Tournament> getAllTournaments() {
-        log.info("SERVICE INFO: Fetching all tournaments");
-        return tournamentRepository.findAllWithParticipations();
-    }
+    List<Tournament> getAllTournaments();
 
     /**
-     * ⭐⭐⭐ 관리자용 전체 대회 목록 (Creator만 FETCH) ⭐⭐⭐
+     * 관리자용 전체 대회 목록 조회
+     * 
+     * <p>참가자 정보를 제외하고 Creator만 함께 조회하여 성능 최적화</p>
+     * 
+     * @return 모든 대회 목록 (생성자 정보만 포함)
      */
-    public List<Tournament> getAllTournamentsForAdmin() {
-        log.info("SERVICE INFO: Fetching all tournaments for admin");
-        return tournamentRepository.findAllWithCreator();
-    }
+    List<Tournament> getAllTournamentsForAdmin();
 
     /**
      * 대회 단일 조회
+     * 
+     * @param id 대회 ID
+     * @return 대회 엔티티
+     * @throws IllegalArgumentException 대회를 찾을 수 없는 경우
      */
-    public Tournament getTournamentById(Long id) {
-        log.debug("SERVICE DEBUG: Fetching tournament with ID: {}", id);
-        return tournamentRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("SERVICE ERROR: Tournament not found with ID: {}", id);
-                    return new IllegalArgumentException("대회를 찾을 수 없습니다. ID=" + id);
-                });
-    }
+    Tournament getTournamentById(Long id);
 
     /**
-     * 대회 상세 조회 (Participations 포함)
+     * 대회 상세 조회 (참가자 정보 포함)
+     * 
+     * @param id 대회 ID
+     * @return 대회 엔티티 (참가자 정보 포함)
+     * @throws IllegalArgumentException 대회를 찾을 수 없는 경우
      */
-    public Tournament getTournamentByIdWithDetails(Long id) {
-        log.debug("SERVICE DEBUG: Fetching tournament with details for ID: {}", id);
-        return tournamentRepository.findByIdWithParticipations(id)
-                .orElseThrow(() -> {
-                    log.error("SERVICE ERROR: Tournament not found with ID: {}", id);
-                    return new IllegalArgumentException("대회를 찾을 수 없습니다. ID=" + id);
-                });
-    }
+    Tournament getTournamentByIdWithDetails(Long id);
 
     /**
      * 대회 생성
+     * 
+     * @param dto 대회 생성 정보
+     * @param creator 대회 생성자
+     * @return 생성된 대회 엔티티
      */
-    @Transactional
-    public Tournament createTournament(TournamentDto dto, User creator) {
-        log.info("SERVICE INFO: Creating tournament: {}", dto.getTitle());
-
-        Tournament tournament = Tournament.builder()
-                .title(dto.getTitle())
-                .description(dto.getDescription())
-                .startDate(dto.getStartDate())
-                .endDate(dto.getEndDate())
-                .type(dto.getType())
-                .status(dto.getStatus() != null ? dto.getStatus() : TournamentStatus.READY)
-                .name(dto.getName())
-                .creator(creator)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-
-        Tournament savedTournament = tournamentRepository.save(tournament);
-        log.info("SERVICE INFO: Tournament created successfully with ID: {}", savedTournament.getId());
-
-        return savedTournament;
-    }
+    Tournament createTournament(TournamentDto dto, User creator);
 
     /**
-     * 대회 수정
+     * 대회 정보 수정
+     * 
+     * @param id 대회 ID
+     * @param dto 수정할 대회 정보
+     * @return 수정된 대회 엔티티
+     * @throws IllegalArgumentException 대회를 찾을 수 없는 경우
      */
-    @Transactional
-    public Tournament updateTournament(Long id, TournamentDto dto) {
-        log.info("SERVICE INFO: Updating tournament ID: {}", id);
-
-        Tournament tournament = getTournamentById(id);
-
-        tournament.setTitle(dto.getTitle());
-        tournament.setDescription(dto.getDescription());
-        tournament.setStartDate(dto.getStartDate());
-        tournament.setEndDate(dto.getEndDate());
-        tournament.setType(dto.getType());
-        tournament.setStatus(dto.getStatus());
-        tournament.setName(dto.getName());
-        tournament.setUpdatedAt(LocalDateTime.now());
-
-        Tournament updatedTournament = tournamentRepository.save(tournament);
-        log.info("SERVICE INFO: Tournament updated successfully: {}", updatedTournament.getId());
-
-        return updatedTournament;
-    }
+    Tournament updateTournament(Long id, TournamentDto dto);
 
     /**
      * 대회 삭제
+     * 
+     * @param id 대회 ID
+     * @throws IllegalArgumentException 대회를 찾을 수 없는 경우
      */
-    @Transactional
-    public void deleteTournament(Long id) {
-        log.info("SERVICE INFO: Deleting tournament ID: {}", id);
-
-        Tournament tournament = getTournamentById(id);
-        tournamentRepository.delete(tournament);
-
-        log.info("SERVICE INFO: Tournament deleted successfully: {}", id);
-    }
+    void deleteTournament(Long id);
 
     /**
      * 진행 중인 대회 목록 조회
+     * 
+     * <p>모집중, 진행중, 본선 준비중 상태의 대회를 조회합니다.</p>
+     * 
+     * @return 진행 중인 대회 목록
      */
-    public List<Tournament> getOngoingTournaments() {
-        log.info("SERVICE INFO: Fetching ongoing tournaments");
-        List<TournamentStatus> ongoingStatuses = Arrays.asList(
-                TournamentStatus.RECRUITING,
-                TournamentStatus.IN_PROGRESS,
-                TournamentStatus.MAIN_READY
-        );
-        return tournamentRepository.findOngoingTournamentsWithParticipations(ongoingStatuses);
-    }
+    List<Tournament> getOngoingTournaments();
 }
