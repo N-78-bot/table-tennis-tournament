@@ -216,8 +216,8 @@ public class BracketServiceImpl implements BracketService {
         }
 
         List<Match> savedMatches = matchRepository.saveAll(allMatches);
-        log.info("[BracketService] ✅ 경기 생성 완료 - Tournament ID: {}, 총 {} matches for Tournament ID: {}",
-                savedMatches.size(), tournament.getId());
+        log.info("[BracketService] ✅ 경기 생성 완료 - Tournament ID: {}, 총 {}경기",
+                tournament.getId(), savedMatches.size());
 
         return savedMatches.size();
     }
@@ -316,11 +316,12 @@ public class BracketServiceImpl implements BracketService {
     }
 
     /** ✅ 예선 결과 기반 본선 생성 */
-    @Transactional
+    // 변경 후
     @Override
-    public List<Match> createFinalBracket(Tournament tournament, int playersPerGroup) {
-        log.info("SERVICE INFO: [createFinalBracket] Request to create final bracket for Tournament ID: {}", tournament.getId());
-
+    @Transactional
+    public List<Match> createFinalBracket(Tournament tournament) {
+        int playersPerGroup = 2;  // 기본값 설정
+        log.info("[BracketService] 본선 대진표 생성 시작 - Tournament ID: {}", tournament.getId());
         if (isFinalBracketGenerated(tournament.getId())) {
             log.warn("SERVICE WARN: [createFinalBracket] Final bracket already generated for Tournament ID: {}. Throwing exception.", tournament.getId());
             throw new IllegalStateException("이미 본선 대진표가 생성되었습니다. 중복 생성할 수 없습니다.");

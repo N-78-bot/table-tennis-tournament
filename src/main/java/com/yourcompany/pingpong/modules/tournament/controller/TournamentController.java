@@ -502,7 +502,7 @@ public class TournamentController {
             }
 
             // 본선 대진표 생성 (각 조당 상위 2명 진출)
-            List<Match> mainBracketMatches = bracketService.createFinalBracket(tournament, 2);
+            List<Match> mainBracketMatches = bracketService.createFinalBracket(tournament);
 
             log.info("✅ 본선 대진표 생성 완료 - {} 경기 생성", mainBracketMatches.size());
 
